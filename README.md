@@ -151,9 +151,21 @@ Benchmarked on A4 scanned documents:
 
 ## 📚 Documentation
 
+### 🚀 Getting Started
+- **[📚 Documentation Center](docs/README.md)** - Complete documentation hub
 - [Installation Guide](docs/installation.md)
-- [API Reference](docs/api_reference.md)
+- [Quick Start](docs/quickstart.md)
 - [Troubleshooting](docs/troubleshooting.md)
+
+### 💼 For Decision Makers
+- [Product Requirements (PRD)](docs/business/PRD.md) - Product positioning and goals
+- [Strategic Analysis](docs/business/STRATEGIC_ANALYSIS.md) - Why we built this
+- [Competitive Comparison](docs/business/COMPETITIVE_COMPARISON.md) - vs. Google Vision, AWS Textract
+
+### 🏗️ For Developers
+- [System Architecture](docs/architecture/ARCHITECTURE.md) - Technical design
+- [Hardware Limitations](docs/architecture/HARDWARE_LIMITATIONS.md) - GPU requirements explained
+- [API Reference](docs/api_reference.md) - Coming soon
 - [Dify Integration](examples/dify_integration.md)
 
 ## 🛣️ Roadmap
