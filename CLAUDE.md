@@ -16,10 +16,26 @@ DeepSeek Visor Agent is a production-ready wrapper for DeepSeek-OCR that provide
 pip install -e .
 pip install -r requirements-dev.txt
 
+# IMPORTANT: transformers version must be 4.46.3 for compatibility
+pip install 'transformers==4.46.3' 'tokenizers>=0.20.0,<0.21.0'
+
 # With optional dependencies
 pip install -e ".[flash-attn]"  # For FlashAttention support
 pip install -e ".[all]"         # All optional dependencies
 ```
+
+### Version Compatibility (CRITICAL)
+
+**transformers 版本要求**：必须使用 `4.46.3`
+
+- ✅ **4.46.3**：经过验证，模型加载正常
+- ❌ **4.51.x**：LlamaFlashAttention2 导入错误
+- ❌ **4.57.x**：LlamaFlashAttention2 导入错误
+
+**模型下载**：
+- 位置：`~/.cache/huggingface/hub/models--deepseek-ai--DeepSeek-OCR/`
+- 大小：6.2 GB
+- 首次加载约需 3-5 分钟（下载）+ 46 秒（加载）
 
 ### Testing
 ```bash
