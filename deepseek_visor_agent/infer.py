@@ -59,24 +59,34 @@ class DeepSeekOCRInference:
     def _load_model(self):
         """Load the DeepSeek-OCR model (single model for all modes)"""
         try:
-            from transformers import AutoModelForCausalLM
+            from transformers import AutoModel  # Use AutoModel not AutoModelForCausalLM
 
             logger.info(f"Loading DeepSeek-OCR model from {MODEL_ID}")
             logger.info("First-time download may take several minutes (~14GB)")
 
             load_kwargs = {
                 "trust_remote_code": True,
-                "torch_dtype": torch.bfloat16 if self.config["device"] != "cpu" else torch.float32,
+                "use_safetensors": True,
             }
 
             if self.config["use_flash_attn"]:
-                load_kwargs["attn_implementation"] = "flash_attention_2"
+                load_kwargs["_attn_implementation"] = "flash_attention_2"
                 logger.info("Using FlashAttention 2 for faster inference")
 
-            model = AutoModelForCausalLM.from_pretrained(MODEL_ID, **load_kwargs)
+            model = AutoModel.from_pretrained(MODEL_ID, **load_kwargs)
+
+            # Move to device and set dtype
+            if self.config["device"] == "cuda":
+                model = model.cuda().to(torch.bfloat16)
+            elif self.config["device"] == "mps":
+                model = model.to("mps").to(torch.float32)  # MPS doesn't support bfloat16
+            else:
+                model = model.to(torch.float32)
+
+            model = model.eval()
             logger.info("Model loaded successfully")
 
-            return model.to(self.config["device"])
+            return model
 
         except Exception as e:
             raise ModelLoadError(f"Failed to load model from {MODEL_ID}: {e}")
@@ -135,14 +145,11 @@ class DeepSeekOCRInference:
 
         start_time = time.time()
 
-        # Load and preprocess image
-        from PIL import Image
-        image = Image.open(image_path).convert("RGB")
-
         # Get inference parameters for current mode
         mode_params = self._get_mode_params()
 
         # Run inference with mode-specific parameters
+        # Based on official API: model.infer(tokenizer, prompt, image_file, base_size, image_size, crop_mode, ...)
         logger.info(
             f"Running inference in {self.config['inference_mode']} mode "
             f"(base_size={mode_params['base_size']}, "
@@ -150,13 +157,18 @@ class DeepSeekOCRInference:
             f"crop_mode={mode_params['crop_mode']})"
         )
 
+        # Convert Path to string for compatibility
+        image_path_str = str(image_path)
+
         output = self.model.infer(
             self.tokenizer,
-            image,
-            prompt,
+            prompt=prompt,
+            image_file=image_path_str,
             base_size=mode_params["base_size"],
             image_size=mode_params["image_size"],
             crop_mode=mode_params["crop_mode"],
+            save_results=False,  # Don't save to disk by default
+            test_compress=False,  # Don't test compression
             **kwargs
         )
 

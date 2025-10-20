@@ -2,13 +2,15 @@
 
 # Core ML dependencies
 torch>=2.6.0
-transformers>=4.46.3
-tokenizers>=0.20.3
+torchvision>=0.21.0
+transformers>=4.51.1,<4.52.0
+tokenizers>=0.20.3,<0.22.0
 
 # Model dependencies
 einops
 addict
 easydict
+matplotlib>=3.10.0
 
 # Image processing
 pillow>=10.0.0
