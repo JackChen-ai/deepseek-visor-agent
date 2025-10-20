@@ -1,7 +1,10 @@
 """
 Inference Engine - Wrapper for DeepSeek-OCR model inference
 
-Handles model loading, device management, and inference execution.
+IMPORTANT: DeepSeek-OCR is a SINGLE model that supports multiple inference modes.
+This class loads the model once and adjusts inference parameters based on the selected mode.
+
+Based on: https://huggingface.co/deepseek-ai/DeepSeek-OCR
 """
 
 from typing import Dict, Union, Any
@@ -10,28 +13,38 @@ import time
 import logging
 import torch
 
-from .device_manager import DeviceManager
+from .device_manager import DeviceManager, INFERENCE_MODES
 from .utils.error_handler import auto_fallback_decorator, ModelLoadError
 
 logger = logging.getLogger(__name__)
 
+# Fixed model ID - DeepSeek-OCR has only one model
+MODEL_ID = "deepseek-ai/DeepSeek-OCR"
+
 
 class DeepSeekOCRInference:
-    """DeepSeek-OCR inference engine with automatic device and model management"""
+    """DeepSeek-OCR inference engine with automatic device and mode management"""
 
-    def __init__(self, model_variant: str = "auto", device: str = "auto"):
+    def __init__(self, inference_mode: str = "auto", device: str = "auto"):
         """
         Initialize the inference engine.
 
         Args:
-            model_variant: "auto" | "gundam" | "base" | "tiny"
+            inference_mode: "auto" | "tiny" | "small" | "base" | "large" | "gundam"
             device: "auto" | "cuda" | "mps" | "cpu"
         """
         self.config = DeviceManager.detect_optimal_config()
 
         # Override auto-detected settings if specified
-        if model_variant != "auto":
-            self.config["model_variant"] = model_variant
+        if inference_mode != "auto":
+            if inference_mode in INFERENCE_MODES:
+                self.config["inference_mode"] = inference_mode
+            else:
+                logger.warning(
+                    f"Unknown inference mode '{inference_mode}', using auto-detected "
+                    f"mode '{self.config['inference_mode']}'"
+                )
+
         if device != "auto":
             self.config["device"] = device
 
@@ -40,16 +53,16 @@ class DeepSeekOCRInference:
         self.model = None
         self.tokenizer = None
 
-        # Lazy loading - models will be loaded on first inference call
+        # Lazy loading - model will be loaded on first inference call
         self._initialized = False
 
     def _load_model(self):
-        """Load the DeepSeek-OCR model"""
+        """Load the DeepSeek-OCR model (single model for all modes)"""
         try:
             from transformers import AutoModelForCausalLM
 
-            model_id = f"deepseek-ai/deepseek-ocr-{self.config['model_variant']}"
-            logger.info(f"Loading model: {model_id}")
+            logger.info(f"Loading DeepSeek-OCR model from {MODEL_ID}")
+            logger.info("First-time download may take several minutes (~14GB)")
 
             load_kwargs = {
                 "trust_remote_code": True,
@@ -58,25 +71,26 @@ class DeepSeekOCRInference:
 
             if self.config["use_flash_attn"]:
                 load_kwargs["attn_implementation"] = "flash_attention_2"
+                logger.info("Using FlashAttention 2 for faster inference")
 
-            model = AutoModelForCausalLM.from_pretrained(model_id, **load_kwargs)
+            model = AutoModelForCausalLM.from_pretrained(MODEL_ID, **load_kwargs)
+            logger.info("Model loaded successfully")
+
             return model.to(self.config["device"])
 
         except Exception as e:
-            raise ModelLoadError(f"Failed to load model: {e}")
+            raise ModelLoadError(f"Failed to load model from {MODEL_ID}: {e}")
 
     def _load_tokenizer(self):
         """Load the tokenizer"""
         try:
             from transformers import AutoTokenizer
 
-            model_id = f"deepseek-ai/deepseek-ocr-{self.config['model_variant']}"
-            logger.info(f"Loading tokenizer: {model_id}")
-
-            return AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
+            logger.info(f"Loading tokenizer from {MODEL_ID}")
+            return AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
 
         except Exception as e:
-            raise ModelLoadError(f"Failed to load tokenizer: {e}")
+            raise ModelLoadError(f"Failed to load tokenizer from {MODEL_ID}: {e}")
 
     def _ensure_initialized(self):
         """Ensure model and tokenizer are loaded"""
@@ -84,6 +98,11 @@ class DeepSeekOCRInference:
             self.model = self._load_model()
             self.tokenizer = self._load_tokenizer()
             self._initialized = True
+
+    def _get_mode_params(self) -> Dict[str, Any]:
+        """Get inference parameters for current mode"""
+        mode = self.config["inference_mode"]
+        return DeviceManager.get_mode_params(mode)
 
     @auto_fallback_decorator
     def infer(
@@ -105,7 +124,8 @@ class DeepSeekOCRInference:
                 "markdown": str,
                 "raw_output": str,
                 "metadata": {
-                    "model": str,
+                    "model": str (always "DeepSeek-OCR"),
+                    "inference_mode": str,
                     "device": str,
                     "inference_time_ms": int
                 }
@@ -119,12 +139,24 @@ class DeepSeekOCRInference:
         from PIL import Image
         image = Image.open(image_path).convert("RGB")
 
-        # Run inference
-        logger.info(f"Running inference on {image_path}")
+        # Get inference parameters for current mode
+        mode_params = self._get_mode_params()
+
+        # Run inference with mode-specific parameters
+        logger.info(
+            f"Running inference in {self.config['inference_mode']} mode "
+            f"(base_size={mode_params['base_size']}, "
+            f"image_size={mode_params['image_size']}, "
+            f"crop_mode={mode_params['crop_mode']})"
+        )
+
         output = self.model.infer(
             self.tokenizer,
             image,
             prompt,
+            base_size=mode_params["base_size"],
+            image_size=mode_params["image_size"],
+            crop_mode=mode_params["crop_mode"],
             **kwargs
         )
 
@@ -136,7 +168,8 @@ class DeepSeekOCRInference:
             "markdown": output,
             "raw_output": output,
             "metadata": {
-                "model": self.config["model_variant"],
+                "model": "DeepSeek-OCR",
+                "inference_mode": self.config["inference_mode"],
                 "device": self.config["device"],
                 "inference_time_ms": inference_time
             }
