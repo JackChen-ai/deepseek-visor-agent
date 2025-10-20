@@ -160,17 +160,21 @@ class DeepSeekOCRInference:
         # Convert Path to string for compatibility
         image_path_str = str(image_path)
 
-        output = self.model.infer(
-            self.tokenizer,
-            prompt=prompt,
-            image_file=image_path_str,
-            base_size=mode_params["base_size"],
-            image_size=mode_params["image_size"],
-            crop_mode=mode_params["crop_mode"],
-            save_results=False,  # Don't save to disk by default
-            test_compress=False,  # Don't test compression
-            **kwargs
-        )
+        # Create a temporary output directory if needed
+        import tempfile
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = self.model.infer(
+                self.tokenizer,
+                prompt=prompt,
+                image_file=image_path_str,
+                base_size=mode_params["base_size"],
+                image_size=mode_params["image_size"],
+                crop_mode=mode_params["crop_mode"],
+                output_path=temp_dir,  # Temporary directory for any output files
+                save_results=False,  # Don't save to disk by default
+                test_compress=False,  # Don't test compression
+                **kwargs
+            )
 
         inference_time = int((time.time() - start_time) * 1000)
 

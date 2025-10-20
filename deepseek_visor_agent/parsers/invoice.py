@@ -31,28 +31,34 @@ class InvoiceParser(BaseParser):
 
     def _extract_total(self, text: str) -> str:
         """Extract total amount from text"""
-        # Pattern: $XXX.XX or Total: $XXX.XX
+        # Patterns in order of priority
         patterns = [
-            r"Total[:\s]+\$?([\d,]+\.?\d*)",
-            r"Amount[:\s]+\$?([\d,]+\.?\d*)",
-            r"\$\s*([\d,]+\.\d{2})"
+            r"(?:Total|Grand\s+Total|Amount\s+Due)[:\s]+\$?\s*([\d,]+\.?\d*)",  # Total: $199.00
+            r"(?:Total|Grand\s+Total|Amount\s+Due)[:\s]+([€£¥])\s*([\d,]+\.?\d*)",  # Total: €199.00
+            r"\$\s*([\d,]+\.\d{2})\s*(?:\n|$)",  # $199.00 at end of line
+            r"(?:USD|EUR|GBP)\s*\$?\s*([\d,]+\.?\d*)",  # USD 199.00
         ]
 
         for pattern in patterns:
-            match = re.search(pattern, text, re.IGNORECASE)
+            match = re.search(pattern, text, re.IGNORECASE | re.MULTILINE)
             if match:
-                return f"${match.group(1)}"
+                amount = match.group(1) if len(match.groups()) == 1 else match.group(2)
+                # Remove commas from amount
+                amount = amount.replace(',', '')
+                return f"${amount}"
 
         return ""
 
     def _extract_date(self, text: str) -> str:
         """Extract date from text"""
-        # Pattern: YYYY-MM-DD, MM/DD/YYYY, etc.
+        # Patterns in order of priority
         patterns = [
-            r"Date[:\s]+(\d{4}-\d{2}-\d{2})",
-            r"Date[:\s]+(\d{1,2}/\d{1,2}/\d{4})",
-            r"(\d{4}-\d{2}-\d{2})",
-            r"(\d{1,2}/\d{1,2}/\d{4})"
+            r"(?:Invoice\s+)?Date[:\s]+(\d{4}-\d{2}-\d{2})",  # Date: 2024-01-15
+            r"(?:Invoice\s+)?Date[:\s]+(\d{1,2}/\d{1,2}/\d{4})",  # Date: 01/15/2024
+            r"(?:Invoice\s+)?Date[:\s]+(\d{1,2}-\d{1,2}-\d{4})",  # Date: 01-15-2024
+            r"(?:Invoice\s+)?Date[:\s]+(\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{4})",  # Date: 15 Jan 2024
+            r"(\d{4}-\d{2}-\d{2})",  # Standalone: 2024-01-15
+            r"(\d{1,2}/\d{1,2}/\d{4})",  # Standalone: 01/15/2024
         ]
 
         for pattern in patterns:
@@ -64,12 +70,39 @@ class InvoiceParser(BaseParser):
 
     def _extract_vendor(self, text: str) -> str:
         """Extract vendor name from text"""
-        # Usually the first line or after "From:"
+        # Try explicit patterns first
+        vendor_patterns = [
+            r"(?:Vendor|From|Company|Business)[:\s]+([^\n]+)",
+            r"(?:Bill\s+From|Billed\s+By)[:\s]+([^\n]+)",
+        ]
+
+        for pattern in vendor_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                vendor = match.group(1).strip()
+                # Clean up common suffixes
+                vendor = re.sub(r'\s*(?:Inc\.?|LLC|Ltd\.?|Corporation|Corp\.?)$', '', vendor, flags=re.IGNORECASE)
+                return vendor.strip()
+
+        # Fallback: Find first meaningful line (not invoice/date/total)
         lines = text.split('\n')
-        for line in lines[:5]:  # Check first 5 lines
+        skip_keywords = ['invoice', 'receipt', 'date', 'total', 'number', '#', 'qty', 'quantity', 'price', 'amount']
+
+        for line in lines[:10]:  # Check first 10 lines
             line = line.strip()
-            if line and not any(kw in line.lower() for kw in ['invoice', 'receipt', 'date', 'total']):
-                return line
+            # Skip empty lines, headers, and lines with keywords
+            if not line or len(line) < 3:
+                continue
+            if any(kw in line.lower() for kw in skip_keywords):
+                continue
+            # Skip lines that look like dates or amounts
+            if re.search(r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', line):
+                continue
+            if re.search(r'\$\s*[\d,]+', line):
+                continue
+
+            # This looks like a vendor name
+            return line
 
         return ""
 
