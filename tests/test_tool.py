@@ -8,7 +8,7 @@ from deepseek_visor_agent import VisionDocumentTool
 @pytest.fixture
 def tool():
     """Create tool instance for testing"""
-    return VisionDocumentTool(device="cpu", model_variant="tiny")
+    return VisionDocumentTool(device="cpu", inference_mode="tiny")
 
 
 def test_tool_initialization():

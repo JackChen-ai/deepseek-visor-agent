@@ -29,7 +29,7 @@
 | 任务 | 交付物 | 验收标准 | 技术要点 | 状态 |
 |------|--------|---------|---------|------|
 | **1.1 注册项目资产** | - GitHub 仓库（public）<br>- PyPI 包名预留<br>- 域名注册 | `pip search deepseek-visor-agent` 无冲突 | 使用 `twine` 上传占位包（v0.0.1） | ✅ 部分完成 |
-| **1.2 环境验证** | - 本地成功运行 HF 示例<br>- 测试 Tiny/Base/Gundam 3 种模式 | 能处理发票/合同/表格图像 | 测试设备：RTX 4090 + M2 Mac | ⏳ 待完成 |
+| **1.2 环境验证** | - 本地成功运行 HF 示例<br>- 测试 Tiny/Small/Base/Large/Gundam 5 种推理模式 | 能处理发票/合同/表格图像 | 测试设备：RTX 4090 + M2 Mac | ⏳ 待完成 |
 | **1.3 初始化项目结构** | 完整目录树（见下方） | `pytest --collect-only` 通过 | 包含占位符文件 | ✅ 已完成 |
 | **1.4 依赖管理** | `requirements.txt` + `requirements-dev.txt` | `pip install -r requirements.txt` 成功 | 可选依赖用 `extras_require` | ✅ 已完成 |
 | **1.5 设备检测模块** | `device_manager.py` | 通过单元测试 | 检测 CUDA/MPS/CPU + 内存估算 | ✅ 已完成 |
@@ -121,14 +121,14 @@ class DeviceManager:
         """
         返回：{
             "device": "cuda" | "mps" | "cpu",
-            "model_variant": "gundam" | "base" | "tiny",
+            "inference_mode": "gundam" | "large" | "base" | "small" | "tiny",
             "use_flash_attn": bool,
             "max_memory_gb": float
         }
         """
         config = {
             "device": "cpu",
-            "model_variant": "tiny",
+            "inference_mode": "tiny",
             "use_flash_attn": False,
             "max_memory_gb": 0
         }
@@ -139,13 +139,13 @@ class DeviceManager:
             gpu_memory = torch.cuda.get_device_properties(0).total_memory / 1e9
             config["max_memory_gb"] = gpu_memory
 
-            # 根据显存选择模型
+            # 根据显存选择推理模式
             if gpu_memory >= 48:
-                config["model_variant"] = "gundam"
+                config["inference_mode"] = "gundam"
             elif gpu_memory >= 24:
-                config["model_variant"] = "base"
+                config["inference_mode"] = "base"
             else:
-                config["model_variant"] = "tiny"
+                config["inference_mode"] = "tiny"
 
             # 检查 FlashAttention
             try:
@@ -157,7 +157,7 @@ class DeviceManager:
         # 2. 检测 Apple Silicon MPS
         elif torch.backends.mps.is_available():
             config["device"] = "mps"
-            config["model_variant"] = "tiny"  # M2 建议用 Tiny
+            config["inference_mode"] = "tiny"  # M2 建议用 Tiny 模式
             config["max_memory_gb"] = psutil.virtual_memory().available / 1e9
 
         # 3. CPU 模式
@@ -200,16 +200,16 @@ from .device_manager import DeviceManager
 from .utils.error_handler import auto_fallback_decorator
 
 class DeepSeekOCRInference:
-    def __init__(self, model_variant="auto", device="auto"):
+    def __init__(self, inference_mode="auto", device="auto"):
         """
         Args:
-            model_variant: "auto" | "gundam" | "base" | "tiny"
+            inference_mode: "auto" | "gundam" | "large" | "base" | "small" | "tiny"
             device: "auto" | "cuda" | "mps" | "cpu"
         """
         self.config = DeviceManager.detect_optimal_config()
 
-        if model_variant != "auto":
-            self.config["model_variant"] = model_variant
+        if inference_mode != "auto":
+            self.config["inference_mode"] = inference_mode
         if device != "auto":
             self.config["device"] = device
 
@@ -217,10 +217,11 @@ class DeepSeekOCRInference:
         self.tokenizer = self._load_tokenizer()
 
     def _load_model(self):
-        """加载 DeepSeek-OCR 模型"""
+        """加载 DeepSeek-OCR 模型（单一模型 ID）"""
         from transformers import AutoModelForCausalLM
 
-        model_id = f"deepseek-ai/deepseek-ocr-{self.config['model_variant']}"
+        # DeepSeek-OCR has only ONE model
+        model_id = "deepseek-ai/DeepSeek-OCR"
 
         # 加载参数
         load_kwargs = {
@@ -236,7 +237,7 @@ class DeepSeekOCRInference:
     def _load_tokenizer(self):
         """加载 Tokenizer"""
         from transformers import AutoTokenizer
-        model_id = f"deepseek-ai/deepseek-ocr-{self.config['model_variant']}"
+        model_id = "deepseek-ai/DeepSeek-OCR"
         return AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
 
     @auto_fallback_decorator
@@ -253,7 +254,7 @@ class DeepSeekOCRInference:
             "markdown": str,
             "raw_output": str,
             "metadata": {
-                "model": str,
+                "inference_mode": str,
                 "device": str,
                 "inference_time_ms": int
             }
@@ -280,7 +281,7 @@ class DeepSeekOCRInference:
             "markdown": output,
             "raw_output": output,
             "metadata": {
-                "model": self.config["model_variant"],
+                "inference_mode": self.config["inference_mode"],
                 "device": self.config["device"],
                 "inference_time_ms": inference_time
             }
@@ -303,35 +304,35 @@ class OOMError(OCRError):
     """内存不足"""
     pass
 
-class ModelLoadError(OCRError):
-    """模型加载失败"""
+class InferenceModeError(OCRError):
+    """推理模式错误"""
     pass
 
 def auto_fallback_decorator(func):
-    """自动降级装饰器：Gundam → Base → Tiny → 报错"""
+    """自动降级装饰器：Gundam → Large → Base → Small → Tiny → 报错"""
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        variants = ["gundam", "base", "tiny"]
-        current_variant = self.config["model_variant"]
+        modes = ["gundam", "large", "base", "small", "tiny"]
+        current_mode = self.config["inference_mode"]
 
-        # 从当前模型开始尝试
-        start_idx = variants.index(current_variant) if current_variant in variants else 0
+        # 从当前模式开始尝试
+        start_idx = modes.index(current_mode) if current_mode in modes else 0
 
-        for variant in variants[start_idx:]:
+        for mode in modes[start_idx:]:
             try:
-                if variant != current_variant:
-                    logger.warning(f"Falling back to {variant} model...")
-                    self.config["model_variant"] = variant
-                    self.model = self._load_model()
+                if mode != current_mode:
+                    logger.warning(f"Falling back to {mode} mode...")
+                    # Only change inference_mode, don't reload model
+                    self.config["inference_mode"] = mode
 
                 return func(self, *args, **kwargs)
 
             except (RuntimeError, torch.cuda.OutOfMemoryError) as e:
-                logger.error(f"{variant} model failed: {e}")
+                logger.error(f"{mode} mode failed: {e}")
                 torch.cuda.empty_cache()  # 清空显存
                 continue
 
-        raise OCRError("All models failed. Try using CPU mode or smaller images.")
+        raise OCRError("All inference modes failed. Try using CPU mode or smaller images.")
 
     return wrapper
 ```
@@ -348,8 +349,8 @@ from .parsers import InvoiceParser, ContractParser
 class VisionDocumentTool:
     """统一工具接口，兼容 LangChain/LlamaIndex"""
 
-    def __init__(self, model_variant="auto", device="auto"):
-        self.engine = DeepSeekOCRInference(model_variant, device)
+    def __init__(self, inference_mode="auto", device="auto"):
+        self.engine = DeepSeekOCRInference(inference_mode, device)
         self.parsers = {
             "invoice": InvoiceParser(),
             "contract": ContractParser(),
@@ -446,8 +447,8 @@ print(response)
 |------|--------|---------|
 | **3.1 完善单元测试** | 覆盖所有核心模块 | pytest 通过，覆盖率 ≥80% |
 | **3.2 集成测试** | LangChain + LlamaIndex | 能成功调用并返回结果 |
-| **3.3 性能基准测试** | `tests/benchmark.py` | Gundam+4090 ≤8s, Tiny+M2 ≤2s |
-| **3.4 错误场景测试** | 测试 OOM、模型加载失败 | 自动降级成功 |
+| **3.3 性能基准测试** | `tests/benchmark.py` | Gundam模式+4090 ≤8s, Tiny模式+M2 ≤2s |
+| **3.4 错误场景测试** | 测试 OOM、推理失败 | 自动降级成功 |
 | **3.5 文档完善** | README + 安装指南 | 新用户能独立完成安装 |
 
 ### 测试用例示例
@@ -469,10 +470,10 @@ def test_invoice_extraction():
 
 def test_auto_fallback():
     """测试自动降级机制"""
-    tool = VisionDocumentTool(model_variant="gundam")
+    tool = VisionDocumentTool(inference_mode="gundam")
     # 模拟 OOM（使用巨大图片）
     result = tool.run("tests/fixtures/large_image.jpg")
-    assert result["metadata"]["model"] in ["base", "tiny"]
+    assert result["metadata"]["inference_mode"] in ["large", "base", "small", "tiny"]
 
 def test_cpu_mode():
     """测试 CPU 模式"""
@@ -549,7 +550,7 @@ See [integration guide](docs/dify_integration.md)
 
 ## ⚡ Performance
 
-| Model | Device | Time (A4 scan) |
+| Inference Mode | Device | Time (A4 scan) |
 |-------|--------|----------------|
 | Gundam | RTX 4090 | 6.2s |
 | Base | RTX 3090 | 12s |
@@ -778,14 +779,14 @@ Week 7+:  40% 开发 + 60% 商业化
 - [ ] **推送到 GitHub**：`git remote add origin <url> && git push -u origin main`
 - [ ] **环境验证**：
   - [ ] 安装依赖：`pip install -r requirements.txt`
-  - [ ] 下载 DeepSeek-OCR Tiny 模型
+  - [ ] 下载 DeepSeek-OCR 模型（HuggingFace 自动下载）
   - [ ] 运行简单推理测试
   - [ ] 验证设备检测功能
 - [ ] **运行测试**：`pytest tests/ -v`
 - [ ] **上传占位包到 PyPI**：`python -m build && twine upload dist/*`
 
 ### 下周计划（Day 8-14）
-- [ ] 完善推理引擎的实际模型调用逻辑
+- [ ] 完善推理引擎的实际推理调用逻辑（使用正确的 inference_mode 参数）
 - [ ] 测试自动降级装饰器（模拟 OOM）
 - [ ] 完善 Invoice Parser 的正则表达式
 - [ ] 添加测试 fixture 图片

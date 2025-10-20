@@ -30,7 +30,7 @@
 | 功能 | 说明 | 验收标准 |
 |------|------|--------|
 | **1. 统一封装推理接口** | 提供 `VisionDocumentTool` 类，隐藏 FlashAttention、GPU、crop_mode 等复杂性 | `tool.run(image_path="invoice.jpg")` 返回结构化结果 |
-| **2. 多模式自动适配** | 根据设备自动选择 Tiny/Base/Gundam：<br>- 无 GPU → Tiny（CPU）<br>- 有 GPU 且内存 >16GB → Gundam<br>- 否则 → Base | 自动 fallback，不崩溃 |
+| **2. 多模式自动适配** | 根据设备自动选择推理模式：<br>- 无 GPU → Tiny 模式（CPU）<br>- 有 GPU 且内存 >16GB → Gundam 模式<br>- 否则 → Base 模式 | 自动 fallback，不崩溃 |
 | **3. 输出结构化 JSON** | 不仅返回 Markdown，还解析关键字段：<br>`{"markdown": "...", "fields": {"total": "$199", "date": "2025-10-01"}}` | 支持常见文档类型字段提取（发票、合同、简历） |
 | **4. 错误处理与降级** | OOM、CUDA error、图像损坏等场景自动降级或返回友好错误 | 不抛出原始 PyTorch 异常 |
 | **5. PyPI 发布** | 包名：`deepseek-ocr-agent` | `pip install deepseek-ocr-agent` 成功 |

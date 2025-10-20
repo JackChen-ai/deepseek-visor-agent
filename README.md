@@ -13,7 +13,7 @@ DeepSeek Visor Agent is a production-ready wrapper for [DeepSeek-OCR](https://hu
 Instead of wrestling with GPU configurations, model variants, and raw markdown output, you get:
 
 - ✅ **Auto device detection** (CUDA/MPS/CPU)
-- ✅ **Automatic fallback** (Gundam → Base → Tiny when OOM)
+- ✅ **Automatic fallback** (Gundam mode → Base mode → Tiny mode when OOM)
 - ✅ **Structured output** (Markdown + extracted fields)
 - ✅ **Agent-ready** (LangChain, LlamaIndex, Dify compatible)
 
@@ -96,7 +96,7 @@ See [integration guide](docs/dify_integration.md) for REST API setup.
 
 The tool automatically detects your hardware and selects the optimal configuration:
 
-| Hardware | Model Selected | Memory Usage |
+| Hardware | Inference Mode | Memory Usage |
 |----------|----------------|--------------|
 | RTX 4090 (48GB) | Gundam | ~40GB |
 | RTX 3090 (24GB) | Base | ~20GB |
@@ -105,10 +105,10 @@ The tool automatically detects your hardware and selects the optimal configurati
 
 ### Automatic Fallback
 
-If inference fails (OOM, CUDA errors), automatically falls back to smaller models:
+If inference fails (OOM, CUDA errors), automatically falls back to lower-resolution modes:
 
 ```
-Gundam (OOM) → Base (OOM) → Tiny (Success!)
+Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Success!)
 ```
 
 ### Supported Document Types
@@ -131,7 +131,7 @@ Gundam (OOM) → Base (OOM) → Tiny (Success!)
     "document_type": "invoice",
     "confidence": 0.95,
     "metadata": {
-        "model": "tiny",
+        "inference_mode": "tiny",
         "device": "cuda",
         "inference_time_ms": 1823
     }
@@ -142,8 +142,8 @@ Gundam (OOM) → Base (OOM) → Tiny (Success!)
 
 Benchmarked on A4 scanned documents:
 
-| Model | Device | Inference Time | Accuracy |
-|-------|--------|----------------|----------|
+| Inference Mode | Device | Inference Time | Accuracy |
+|----------------|--------|----------------|----------|
 | Gundam | RTX 4090 | ~6s | 98% |
 | Base | RTX 3090 | ~12s | 96% |
 | Tiny | M2 Mac | ~2s | 92% |
@@ -198,7 +198,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- DeepSeek AI team for the amazing OCR models
+- DeepSeek AI team for the amazing OCR model
 - Hugging Face for model hosting
 - LangChain and LlamaIndex communities for inspiration
 

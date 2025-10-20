@@ -10,8 +10,8 @@ def test_device_detection():
 
     assert "device" in config
     assert config["device"] in ["cuda", "mps", "cpu"]
-    assert "model_variant" in config
-    assert config["model_variant"] in ["gundam", "base", "tiny"]
+    assert "inference_mode" in config
+    assert config["inference_mode"] in ["gundam", "large", "base", "small", "tiny"]
     assert "use_flash_attn" in config
     assert "max_memory_gb" in config
     assert isinstance(config["max_memory_gb"], (int, float))
