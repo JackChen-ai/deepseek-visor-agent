@@ -2,6 +2,7 @@
 Vision Document Tool - Main interface for document OCR and parsing
 
 Provides a unified API for AI agents to extract structured data from documents.
+Uses DeepSeek-OCR with automatic inference mode selection.
 """
 
 from typing import Dict, Union, Any, Optional
@@ -25,17 +26,23 @@ class VisionDocumentTool:
 
     def __init__(
         self,
-        model_variant: str = "auto",
+        inference_mode: str = "auto",
         device: str = "auto"
     ):
         """
         Initialize the Vision Document Tool.
 
         Args:
-            model_variant: "auto" | "gundam" | "base" | "tiny"
+            inference_mode: "auto" | "tiny" | "small" | "base" | "large" | "gundam"
+                - auto: Automatically select based on available GPU memory
+                - tiny: 512x512 resolution (CPU compatible)
+                - small: 640x640 resolution
+                - base: 1024x1024 resolution
+                - large: 1280x1280 resolution
+                - gundam: Dynamic resolution with cropping
             device: "auto" | "cuda" | "mps" | "cpu"
         """
-        self.engine = DeepSeekOCRInference(model_variant, device)
+        self.engine = DeepSeekOCRInference(inference_mode, device)
 
         # Initialize parsers
         self.parsers = {
