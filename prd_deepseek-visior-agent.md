@@ -31,7 +31,7 @@
 |------|------|--------|
 | **1. 统一封装推理接口** | 提供 `VisionDocumentTool` 类，隐藏 FlashAttention、GPU、crop_mode 等复杂性 | `tool.run(image_path="invoice.jpg")` 返回结构化结果 |
 | **2. 多模式自动适配** | 根据设备自动选择推理模式：<br>- 无 GPU → Tiny 模式（CPU）<br>- 有 GPU 且内存 >16GB → Gundam 模式<br>- 否则 → Base 模式 | 自动 fallback，不崩溃 |
-| **3. 输出结构化 JSON** | 不仅返回 Markdown，还解析关键字段：<br>`{"markdown": "...", "fields": {"total": "$199", "date": "2025-10-01"}}` | 支持常见文档类型字段提取（发票、合同、简历） |
+| **3. 输出结构化 JSON** | 不仅返回 Markdown，还解析关键字段：<br>`{"markdown": "...", "fields": {"total": "$199", "date": "2025-10-01"}}` | 支��常见文档类型字段提取（发票、合同、简历） |
 | **4. 错误处理与降级** | OOM、CUDA error、图像损坏等场景自动降级或返回友好错误 | 不抛出原始 PyTorch 异常 |
 | **5. PyPI 发布** | 包名：`deepseek-ocr-agent` | `pip install deepseek-ocr-agent` 成功 |
 
@@ -48,11 +48,12 @@
 
 | 类别 | 要求 |
 |------|------|
-| **部署** | 支持 Mac（M 系列）、Linux、Windows（WSL）；GPU/CPU 自动检测 |
-| **依赖** | 尽量复用 `transformers` + `flash-attn`，避免引入 heavy 依赖 |
+| **硬件要求** | ⚠️ **NVIDIA GPU (CUDA 11.8+) 必需**<br>- 推荐：RTX 3090/4090 (24GB+ VRAM)<br>- 最低：GTX 1080 Ti (11GB VRAM)<br>- ❌ **不支持纯 CPU**（上游模型限制）<br>- ❌ 不支持 AMD GPU (ROCm)<br>- ❓ Apple MPS 未验证（模型有硬编码 CUDA 调用） |
+| **部署环境** | - Linux (Ubuntu 20.04+)<br>- Windows (WSL2 + CUDA)<br>- Docker (nvidia-docker) ✅ 推荐<br>- 云端 GPU (RunPod, Vast.ai, Lambda Labs) |
+| **依赖** | - transformers==4.46.3 (固定版本)<br>- torch>=2.6.0 + CUDA<br>- 避免引入 heavy 依赖 |
 | **许可证** | MIT（鼓励集成、fork、商用） |
-| **文档** | README 包含：<br>- 安装命令<br>- 3 个典型用例（发票、合同、论文）<br>- LangChain 集成示例 |
-| **性能** | Gundam 模式处理 A4 扫描件 ≤8s（RTX 4090）；Tiny 模式 ≤2s（M2） |
+| **文档** | README 包含：<br>- **硬件要求警告**（置顶）<br>- 安装命令<br>- 3 个典型用例（发票、合同、表格）<br>- LangChain 集成示例<br>- 托管 API 方案（无 GPU 用户） |
+| **性能** | - Gundam 模式 + RTX 4090: ≤8s (A4扫描件)<br>- Base 模式 + RTX 3090: ≤12s<br>- Tiny 模式 + GTX 1080 Ti: ≤5s |
 
 ---
 
