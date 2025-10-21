@@ -59,3 +59,6 @@ logs/
 # Environment
 .env
 .env.local
+
+# Private documentation (商业计划、竞品分析、开发记录)
+docs-private/
