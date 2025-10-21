@@ -6,13 +6,34 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
+---
+
+## ⚠️ **GPU Requirements (CRITICAL)**
+
+**NVIDIA GPU with Turing+ architecture required**
+
+| ✅ Supported | ❌ Not Supported |
+|-------------|-----------------|
+| RTX 20/30/40 series (Turing/Ampere/Ada) | GTX 10 series (Pascal - no FlashAttention) |
+| Tesla T4, A10, A100 | GTX 1080 Ti, GTX 1660 |
+| **Minimum**: RTX 2060 (6GB VRAM) | CPU-only mode |
+| **Recommended**: RTX 3090 (24GB VRAM) | AMD GPUs (ROCm) |
+
+**Why?** DeepSeek-OCR requires [FlashAttention 2.x](https://github.com/Dao-AILab/flash-attention), which only supports compute capability 7.5+ (Turing and newer).
+
+**No GPU?** Check our [hosted API](https://deepseek-visor-agent.com) (coming soon).
+
+📖 **Detailed compatibility guide**: [GPU_COMPATIBILITY.md](docs/GPU_COMPATIBILITY.md)
+
+---
+
 ## 🎯 What is This?
 
 DeepSeek Visor Agent is a production-ready wrapper for [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR) that makes document understanding **effortless for AI agents**.
 
 Instead of wrestling with GPU configurations, model variants, and raw markdown output, you get:
 
-- ✅ **Auto device detection** (CUDA/MPS/CPU)
+- ✅ **Auto device detection** (CUDA with Turing+ GPUs)
 - ✅ **Automatic fallback** (Gundam mode → Base mode → Tiny mode when OOM)
 - ✅ **Structured output** (Markdown + extracted fields)
 - ✅ **Agent-ready** (LangChain, LlamaIndex, Dify compatible)

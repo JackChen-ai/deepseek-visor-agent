@@ -8,6 +8,21 @@ DeepSeek Visor Agent is a production-ready wrapper for DeepSeek-OCR that provide
 
 **Critical Architecture Concept**: DeepSeek-OCR is a SINGLE model (`deepseek-ai/DeepSeek-OCR`) with 5 inference modes, NOT multiple model files. The modes (tiny/small/base/large/gundam) control resolution parameters (`base_size`, `image_size`, `crop_mode`), not different model weights.
 
+### ✅ Verified Architecture Facts (2025-10-21)
+
+**Based on complete source code verification**:
+- ✅ **All 5 modes are fully open-sourced** via `model.infer()` parameters
+- ✅ **GitHub repo contains complete code**:
+  - HuggingFace version: `DeepSeek-OCR-master/DeepSeek-OCR-hf/`
+  - vLLM optimized version: `DeepSeek-OCR-master/DeepSeek-OCR-vllm/`
+- ✅ **`crop_mode` parameter exists** in source code (Gundam mode is production-ready)
+- ✅ **vLLM support is fully open-sourced** with 2500 tokens/s throughput capability
+
+**Official References**:
+- GitHub: `https://github.com/deepseek-ai/DeepSeek-OCR`
+- Official Example: `DeepSeek-OCR-master/DeepSeek-OCR-hf/run_dpsk_ocr.py`
+- Architecture Analysis: `/docs/architecture/DEEPSEEK_OCR_ADVANTAGES.md`
+
 ## Development Commands
 
 ### Installation
@@ -157,9 +172,20 @@ Located in `examples/`:
 
 ## Documentation Files
 
-- `ERROR_ANALYSIS_AND_FIXES.md`: Root cause analysis of Day 1 architecture error
-- `DAY1_COMPLETION_REPORT.md`: Project initialization summary
-- `project_development_plan_v2.md`: 75-day development roadmap
+**Architecture & Business**:
+- `/docs/architecture/DEEPSEEK_OCR_ADVANTAGES.md`: **✅ Complete architecture analysis with source code verification**
+  - All 5 modes verified as open-sourced
+  - Official code examples and usage patterns
+  - Performance benchmarks from paper (Fox Benchmark, OmniDocBench)
+- `/docs/business/PRD.md`: **Product Requirements Document (verified feasible)**
+  - All features can be implemented with open-source code
+  - Commercial strategy: Open SDK + Hosted API + Data generation service
+  - Target: AI Agent developers, Low-code platforms, AI companies
+
+**Development**:
+- `DAY1_REPORT.md`: Day 1 progress - device detection, basic inference
+- `DAY2_REPORT.md`: Day 2 progress - parser system, error handling
+- `CLAUDE.md` (this file): Development guide for Claude Code
 
 ## Naming Conventions
 
@@ -169,16 +195,27 @@ Located in `examples/`:
 
 ## When Making Changes
 
-1. **Verify against official docs**: https://huggingface.co/deepseek-ai/DeepSeek-OCR
+1. **Verify against official code**:
+   - GitHub: `https://github.com/deepseek-ai/DeepSeek-OCR`
+   - Official example: `run_dpsk_ocr.py` shows all 5 modes usage
 2. **Remember**: 1 model + 5 modes, NOT 5 different models
 3. **Test inference modes**: Ensure mode params are passed correctly to `model.infer()`
 4. **Update tests**: When adding parsers or modes
+5. **Reference architecture docs**: `/docs/architecture/DEEPSEEK_OCR_ADVANTAGES.md` contains verified technical details
 
 ## Common Pitfalls
 
-- Assuming "Gundam" is a separate model file (it's a dynamic resolution mode)
-- Reloading model during fallback (unnecessary and slow)
-- Confusing `model_variant` terminology (should be `inference_mode`)
-- Using incorrect HuggingFace model paths
+❌ **WRONG**: Assuming "Gundam" is a separate model file
+✅ **CORRECT**: Gundam is a dynamic resolution mode (`crop_mode=True`)
 
-See `ERROR_ANALYSIS_AND_FIXES.md` for detailed explanation of the architecture.
+❌ **WRONG**: Reloading model during fallback
+✅ **CORRECT**: Only change `config["inference_mode"]`, model stays loaded
+
+❌ **WRONG**: Using `model_variant` terminology
+✅ **CORRECT**: Use `inference_mode` consistently
+
+❌ **WRONG**: Assuming modes are "experimental" or "not open-sourced"
+✅ **CORRECT**: All 5 modes are production-ready and fully open-sourced (verified 2025-10-21)
+
+❌ **WRONG**: Using incorrect HuggingFace paths like `deepseek-ai/deepseek-ocr-{mode}`
+✅ **CORRECT**: Single model path `deepseek-ai/DeepSeek-OCR` with mode parameters

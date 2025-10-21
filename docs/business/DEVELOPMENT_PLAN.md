@@ -102,6 +102,22 @@ input_ids.unsqueeze(0).cuda(),  # 无视设备参数，强制 CUDA
 
 **详细分析文档**: 见 [CRITICAL_LIMITATION_ANALYSIS.md](CRITICAL_LIMITATION_ANALYSIS.md)
 
+### ✅ **P0 文档更新（Day 3 - 2025-10-21）** - 已完成
+
+**关键外部反馈**: 发现 GTX 1080 Ti 兼容性错误（Pascal 架构不支持 FlashAttention 2.x）
+
+**紧急修复完成**:
+- [x] 更新 PRD.md 硬件要求：最低 GPU 从 GTX 1080 Ti 改为 RTX 2060 (Turing+) ✅
+- [x] 更新 PRD.md 性能指标：区分 Transformers (估算) vs vLLM (论文数据) ✅
+- [x] 更新 README.md: 添加 GPU Requirements 警告部分（置顶） ✅
+- [x] 创建 GPU_COMPATIBILITY.md：详细兼容性表格、云端GPU指南、故障排查 ✅
+
+**技术核心发现**:
+- ✅ FlashAttention 2.x 要求 compute capability 7.5+ (Turing/Ampere/Ada)
+- ❌ Pascal 架构 (GTX 10 系列) 是 sm_60/61，不支持
+- ✅ 最低要求: RTX 2060 (sm_75, 6GB VRAM)
+- ✅ vLLM 状态: 代码已开源，需手动注册模型（非原生支持）
+
 ### ⏳ **待完成任务（Day 3-7 调整后优先级）**
 
 **P0 - 获取 GPU 环境验证** ⚠️ **阻塞任务**
@@ -110,11 +126,12 @@ input_ids.unsqueeze(0).cuda(),  # 无视设备参数，强制 CUDA
 - [ ] 验证 5 种推理模式（tiny/small/base/large/gundam）
 - [ ] 记录性能基准数据（A4 扫描件处理时间）
 - [ ] 测试自动降级机制（模拟 OOM）
+- [ ] 更新所有文档中的性能数据为实测值（移除"估算"/"论文数据"标注）
 - **预算**: $10（可完成所有验证）
 - **时间**: 1-2 天
 
-**P1 - 文档更新**
-- [ ] 更新 README.md 添加硬件要求警告（置顶）
+**P1 - 文档完善**（P0 完成后）
+- [x] 更新 README.md 添加硬件要求警告（置顶）✅
 - [ ] 补充安装步骤（CUDA 检查）
 - [ ] 添加 3 个快速示例
 - [ ] 添加"无 GPU？使用托管 API"指引
