@@ -34,9 +34,9 @@ class ContractParser(BaseParser):
         """Extract contract parties"""
         parties = []
 
-        # Pattern 1: "between X and Y"
-        between_pattern = r"(?:between|among)\s+([^,\.]+?)\s+(?:and|&)\s+([^,\.]+?)(?:\s+(?:collectively|hereinafter)|\.|,)"
-        match = re.search(between_pattern, text, re.IGNORECASE)
+        # Pattern 1: "between X and Y" - more flexible ending
+        between_pattern = r"(?:between|among)\s+([^,\.]+?)\s+(?:and|&)\s+([^,\.]+?)(?:\s+(?:collectively|hereinafter)|[,\.]|$)"
+        match = re.search(between_pattern, text, re.IGNORECASE | re.MULTILINE)
         if match:
             parties.append(match.group(1).strip())
             parties.append(match.group(2).strip())
@@ -67,6 +67,8 @@ class ContractParser(BaseParser):
             r"(?:Effective\s+Date|Commencement\s+Date)[:\s]+(\d{1,2}\s+\w+\s+\d{4})",
             r"effective\s+(?:as\s+of|from)\s+(\d{1,2}\s+\w+\s+\d{4})",
             r"dated?\s+(?:this\s+)?(\d{1,2}(?:st|nd|rd|th)?\s+day\s+of\s+\w+,?\s+\d{4})",
+            r"(?:shall\s+commence\s+on|commences?\s+on)\s+(\w+\s+\d{1,2},?\s+\d{4})",  # "January 15, 2024"
+            r"(?:shall\s+commence\s+on|commences?\s+on)\s+(\d{1,2}\s+\w+\s+\d{4})",  # "15 January 2024"
         ]
 
         for pattern in patterns:
@@ -120,14 +122,18 @@ class ContractParser(BaseParser):
     def _extract_governing_law(self, text: str) -> str:
         """Extract governing law/jurisdiction"""
         patterns = [
-            r"(?:governed\s+by|subject\s+to)\s+(?:the\s+)?laws?\s+of\s+([^,\.\n]+)",
+            r"(?:governed\s+by|subject\s+to)(?:\s+and\s+construed\s+in\s+accordance\s+with)?\s+(?:the\s+)?laws?\s+of\s+(?:the\s+State\s+of\s+)?([^,\.\n]+)",
             r"(?:Governing\s+Law|Jurisdiction)[:\s]+([^,\.\n]+)",
+            r"laws?\s+of\s+(?:the\s+State\s+of\s+)?([A-Z][a-zA-Z\s]+?)(?:\.|,|\n|$)",  # Fallback
         ]
 
         for pattern in patterns:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                return match.group(1).strip()
+                result = match.group(1).strip()
+                # Clean up common trailing words
+                result = re.sub(r'\s*(?:and|or|the|of)\s*$', '', result, flags=re.IGNORECASE)
+                return result.strip()
 
         return ""
 

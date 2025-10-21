@@ -13,6 +13,9 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
+    env:
+      CI: true  # Skip model loading tests in CI
+
     steps:
     - uses: actions/checkout@v3
 

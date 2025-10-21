@@ -67,7 +67,7 @@ If you encounter issues or have suggestions for improvement:
 ## 🔗 External Resources
 
 - **Project Homepage**: https://github.com/JackChen-ai/deepseek-visor-agent
-- **PyPI Package**: https://pypi.org/project/deepseek-visor-agent/ (coming soon)
+- **PyPI Package**: https://pypi.org/project/deepseek-visor-agent/ ✅ **v0.1.0 Available**
 - **Upstream Project**: https://huggingface.co/deepseek-ai/DeepSeek-OCR
 
 ---

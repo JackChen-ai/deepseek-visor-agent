@@ -10,10 +10,13 @@ tokenizers>=0.20.0,<0.21.0
 einops
 addict
 easydict
-matplotlib>=3.10.0
+matplotlib>=3.5.0  # 3.10+ requires Python 3.10+
 
 # Image processing
 pillow>=10.0.0
+
+# PDF processing
+PyMuPDF>=1.23.0  # PDF to image conversion, DeepSeek-OCR official recommendation
 
 # Utilities
 psutil>=5.9.0

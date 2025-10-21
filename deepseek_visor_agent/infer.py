@@ -117,7 +117,7 @@ class DeepSeekOCRInference:
     @auto_fallback_decorator
     def infer(
         self,
-        image_path: Union[str, Path],
+        image_path: Union[str, Path, "Image.Image"],
         prompt: str = "<image>\n<|grounding|>Convert the document to markdown.",
         **kwargs
     ) -> Dict[str, Any]:
@@ -125,7 +125,7 @@ class DeepSeekOCRInference:
         Run OCR inference on an image.
 
         Args:
-            image_path: Path to the image file
+            image_path: Path to the image file, or a PIL Image object
             prompt: Prompt template for the model
             **kwargs: Additional arguments passed to model.infer()
 
@@ -141,6 +141,8 @@ class DeepSeekOCRInference:
                 }
             }
         """
+        from PIL import Image
+
         self._ensure_initialized()
 
         start_time = time.time()
@@ -157,24 +159,46 @@ class DeepSeekOCRInference:
             f"crop_mode={mode_params['crop_mode']})"
         )
 
-        # Convert Path to string for compatibility
-        image_path_str = str(image_path)
-
-        # Create a temporary output directory if needed
+        # Handle PIL Image objects by saving to temporary file
+        # DeepSeek-OCR model.infer() only accepts file paths
         import tempfile
-        with tempfile.TemporaryDirectory() as temp_dir:
-            output = self.model.infer(
-                self.tokenizer,
-                prompt=prompt,
-                image_file=image_path_str,
-                base_size=mode_params["base_size"],
-                image_size=mode_params["image_size"],
-                crop_mode=mode_params["crop_mode"],
-                output_path=temp_dir,  # Temporary directory for any output files
-                save_results=False,  # Don't save to disk by default
-                test_compress=False,  # Don't test compression
-                **kwargs
-            )
+        temp_image_file = None
+
+        if isinstance(image_path, Image.Image):
+            # Save PIL Image to temporary file
+            with tempfile.NamedTemporaryFile(suffix='.png', delete=False) as tmp:
+                image_path.save(tmp.name, 'PNG')
+                temp_image_file = tmp.name
+                image_path_str = temp_image_file
+                logger.debug(f"Saved PIL Image to temporary file: {temp_image_file}")
+        else:
+            # Convert Path to string for compatibility
+            image_path_str = str(image_path)
+
+        try:
+            # Create a temporary output directory if needed
+            with tempfile.TemporaryDirectory() as temp_dir:
+                output = self.model.infer(
+                    self.tokenizer,
+                    prompt=prompt,
+                    image_file=image_path_str,
+                    base_size=mode_params["base_size"],
+                    image_size=mode_params["image_size"],
+                    crop_mode=mode_params["crop_mode"],
+                    output_path=temp_dir,  # Temporary directory for any output files
+                    save_results=False,  # Don't save to disk by default
+                    test_compress=False,  # Don't test compression
+                    **kwargs
+                )
+        finally:
+            # Clean up temporary image file if created
+            if temp_image_file:
+                import os
+                try:
+                    os.unlink(temp_image_file)
+                    logger.debug(f"Cleaned up temporary file: {temp_image_file}")
+                except Exception as e:
+                    logger.warning(f"Failed to delete temporary file {temp_image_file}: {e}")
 
         inference_time = int((time.time() - start_time) * 1000)
 

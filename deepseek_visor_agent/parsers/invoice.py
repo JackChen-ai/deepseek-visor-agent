@@ -10,6 +10,10 @@ from .base import BaseParser
 class InvoiceParser(BaseParser):
     """Parser for extracting invoice fields from markdown"""
 
+    def __init__(self):
+        """Initialize parser"""
+        self._last_fields = {}
+
     def parse(self, markdown: str) -> Dict[str, Any]:
         """
         Extract invoice fields from markdown.
@@ -27,14 +31,20 @@ class InvoiceParser(BaseParser):
             "items": self._extract_items(markdown)
         }
 
+        # Store for confidence calculation
+        self._last_fields = fields
         return fields
 
     def _extract_total(self, text: str) -> str:
         """Extract total amount from text"""
-        # Patterns in order of priority
+        # Patterns in order of priority - Grand Total first to avoid matching Subtotal
         patterns = [
-            r"(?:Total|Grand\s+Total|Amount\s+Due)[:\s]+\$?\s*([\d,]+\.?\d*)",  # Total: $199.00
-            r"(?:Total|Grand\s+Total|Amount\s+Due)[:\s]+([€£¥])\s*([\d,]+\.?\d*)",  # Total: €199.00
+            r"(?:Grand\s+Total)[:\s]+\$?\s*([\d,]+\.?\d*)",  # Grand Total: $199.00 (highest priority)
+            r"(?:Amount\s+Due)[:\s]+\$?\s*([\d,]+\.?\d*)",  # Amount Due: $199.00
+            r"(?<!Sub)(?:Total)[:\s]+\$?\s*([\d,]+\.?\d*)",  # Total: $199.00 (but not Subtotal)
+            r"(?:Grand\s+Total)[:\s]+([€£¥])\s*([\d,]+\.?\d*)",  # Grand Total: €199.00
+            r"(?:Amount\s+Due)[:\s]+([€£¥])\s*([\d,]+\.?\d*)",  # Amount Due: €199.00
+            r"(?<!Sub)(?:Total)[:\s]+([€£¥])\s*([\d,]+\.?\d*)",  # Total: €199.00 (but not Subtotal)
             r"\$\s*([\d,]+\.\d{2})\s*(?:\n|$)",  # $199.00 at end of line
             r"(?:USD|EUR|GBP)\s*\$?\s*([\d,]+\.?\d*)",  # USD 199.00
         ]
@@ -80,13 +90,19 @@ class InvoiceParser(BaseParser):
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 vendor = match.group(1).strip()
-                # Clean up common suffixes
-                vendor = re.sub(r'\s*(?:Inc\.?|LLC|Ltd\.?|Corporation|Corp\.?)$', '', vendor, flags=re.IGNORECASE)
+                # Clean up common suffixes (Inc., LLC, Ltd., Corporation - NOT "Corp" alone)
+                vendor = re.sub(r'\s*(?:Inc\.?|LLC|Ltd\.?|Corporation|Corp\.)$', '', vendor, flags=re.IGNORECASE)
                 return vendor.strip()
 
         # Fallback: Find first meaningful line (not invoice/date/total)
+        # Only use this if we're confident it's an invoice context
         lines = text.split('\n')
-        skip_keywords = ['invoice', 'receipt', 'date', 'total', 'number', '#', 'qty', 'quantity', 'price', 'amount']
+        skip_keywords = ['invoice', 'receipt', 'date', 'total', 'number', '#', 'qty', 'quantity', 'price', 'amount', 'random', 'text']
+
+        # Only use fallback if there are invoice-like keywords in the text
+        has_invoice_context = any(kw in text.lower() for kw in ['invoice', 'receipt', 'bill', 'payment'])
+        if not has_invoice_context:
+            return ""
 
         for line in lines[:10]:  # Check first 10 lines
             line = line.strip()
@@ -110,6 +126,25 @@ class InvoiceParser(BaseParser):
         """Extract line items from text (placeholder implementation)"""
         # TODO: Implement line item extraction
         return []
+
+    def get_confidence(self) -> float:
+        """
+        Calculate confidence score based on extracted fields.
+
+        Returns:
+            float: Confidence score between 0 and 1
+        """
+        if not hasattr(self, '_last_fields') or not self._last_fields:
+            return 0.0
+
+        # Count non-empty required fields
+        required_fields = ["total", "date", "vendor"]
+        filled_fields = sum(1 for field in required_fields if self._last_fields.get(field))
+
+        # Calculate confidence: 0.33 per required field
+        confidence = filled_fields / len(required_fields)
+
+        return confidence
 
     def get_fields_schema(self) -> Dict[str, Any]:
         """Get JSON schema for invoice fields"""

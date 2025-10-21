@@ -42,16 +42,44 @@ DeepSeek Visor Agent is a **production-ready Python wrapper** for [DeepSeek-OCR]
 
 ## ⚡ Quick Start
 
+### Prerequisites
+
+Before installation, ensure you have:
+1. **NVIDIA GPU** with Turing+ architecture (RTX 20/30/40 series, Tesla T4/A100)
+2. **CUDA 11.8+** installed and configured
+3. **Python 3.9+**
+
 ### Installation
+
+**Step 1: Install the package**
 
 ```bash
 pip install deepseek-visor-agent
+```
 
-# Optional: For RTX GPUs with FlashAttention support
-pip install deepseek-visor-agent[flash-attn]
+**Step 2: (First-time only) Model download**
+
+The first time you run the tool, it will automatically download the DeepSeek-OCR model (~6.2 GB) from HuggingFace:
+
+```python
+from deepseek_visor_agent import VisionDocumentTool
+
+# This will trigger model download on first run
+tool = VisionDocumentTool()
+```
+
+The model will be cached in `~/.cache/huggingface/` and reused for subsequent runs.
+
+**Step 3: (Optional) Install FlashAttention for better performance**
+
+```bash
+# For RTX GPUs with compute capability 7.5+
+pip install flash-attn --no-build-isolation
 ```
 
 ### Basic Usage
+
+**Process Images:**
 
 ```python
 from deepseek_visor_agent import VisionDocumentTool
@@ -59,7 +87,7 @@ from deepseek_visor_agent import VisionDocumentTool
 # Initialize the tool (auto-detects best device and model)
 tool = VisionDocumentTool()
 
-# Process a document
+# Process a document image
 result = tool.run("invoice.jpg")
 
 print(result["fields"]["total"])  # "$199.00"
@@ -67,7 +95,150 @@ print(result["fields"]["date"])   # "2024-01-15"
 print(result["document_type"])    # "invoice"
 ```
 
+**Process PDFs:**
+
+```python
+# PDF files work the same way - automatically converts pages to images
+result = tool.run("contract.pdf")
+
+print(f"Processed {result['pages']} pages")
+print(result["markdown"])  # Multi-page PDFs have <--- Page Split ---> separators
+
+# Process specific pages only
+result = tool.run("long_document.pdf", pdf_start_page=0, pdf_end_page=2)
+```
+
 That's it! No configuration needed.
+
+## 📖 Complete User Journey
+
+### Scenario 1: Standalone Python Script
+
+**Use Case**: Extract invoice data for accounting automation
+
+```python
+from deepseek_visor_agent import VisionDocumentTool
+import json
+
+# Initialize once
+tool = VisionDocumentTool()
+
+# Process multiple invoices
+invoices = ["invoice1.jpg", "invoice2.pdf", "invoice3.png"]
+results = []
+
+for invoice_path in invoices:
+    result = tool.run(invoice_path, document_type="invoice")
+    results.append({
+        "file": invoice_path,
+        "total": result["fields"]["total"],
+        "vendor": result["fields"]["vendor"],
+        "date": result["fields"]["date"]
+    })
+
+# Export to JSON
+with open("extracted_invoices.json", "w") as f:
+    json.dump(results, f, indent=2)
+
+print(f"Processed {len(results)} invoices")
+```
+
+**Timeline**:
+- First run: ~30 seconds (model download + first inference)
+- Subsequent runs: ~5-7 seconds per page
+
+### Scenario 2: LangChain AI Agent
+
+**Use Case**: Build a chatbot that can answer questions about uploaded documents
+
+```python
+from langchain.tools import tool
+from langchain.agents import initialize_agent, AgentType
+from langchain_openai import ChatOpenAI
+from deepseek_visor_agent import VisionDocumentTool
+
+# Initialize OCR tool
+ocr_tool = VisionDocumentTool()
+
+@tool
+def analyze_document(image_path: str) -> dict:
+    """Analyze any document image and extract structured data"""
+    return ocr_tool.run(image_path, document_type="auto")
+
+# Create agent
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+agent = initialize_agent(
+    [analyze_document],
+    llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# User interaction
+response = agent.run("What is the total amount in invoice.jpg?")
+print(response)
+# Output: "The total amount in the invoice is $199.00, dated 2024-01-15 from Acme Corp."
+```
+
+**User Flow**:
+1. User uploads document image via chat interface
+2. Agent calls `analyze_document` tool
+3. DeepSeek-OCR extracts text + fields
+4. LLM interprets results and responds naturally
+
+### Scenario 3: Batch PDF Processing
+
+**Use Case**: Process hundreds of multi-page contracts
+
+```python
+from deepseek_visor_agent import VisionDocumentTool
+from pathlib import Path
+import json
+
+tool = VisionDocumentTool()
+
+# Find all PDFs
+contracts_dir = Path("./contracts/")
+pdf_files = list(contracts_dir.glob("*.pdf"))
+
+results = []
+for pdf_path in pdf_files:
+    print(f"Processing {pdf_path.name}...")
+
+    result = tool.run(
+        str(pdf_path),
+        document_type="contract",
+        pdf_start_page=0,  # Process first 3 pages only
+        pdf_end_page=2
+    )
+
+    results.append({
+        "filename": pdf_path.name,
+        "parties": result["fields"]["parties"],
+        "effective_date": result["fields"]["effective_date"],
+        "pages_processed": result["pages"]
+    })
+
+# Save results
+with open("contracts_summary.json", "w") as f:
+    json.dump(results, f, indent=2)
+
+print(f"Processed {len(results)} contracts")
+```
+
+**Performance**: ~6-7 seconds per page on Tesla T4
+
+### Scenario 4: REST API for No-Code Platforms (Dify/Flowise)
+
+**Use Case**: Integrate with Dify for visual workflow builder
+
+See [Dify Integration Guide](examples/dify_integration.md) for complete setup.
+
+**High-level flow**:
+1. Deploy FastAPI wrapper (provided in examples)
+2. Configure Dify HTTP node with OCR endpoint
+3. Build visual workflow: Upload → OCR → Parse → Respond
+4. No Python code needed for end users
 
 ## 🔗 Integrations
 
@@ -138,8 +309,30 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
 
 - ✅ **Invoices** - Extracts total, date, vendor, line items
 - ✅ **Contracts** - Extracts parties, effective date, terms
+- ✅ **PDF Documents** - Multi-page PDFs with automatic page splitting
 - 🚧 **Resumes** - Coming soon
 - 🚧 **Forms** - Coming soon
+
+### PDF Support
+
+Based on [DeepSeek-OCR official implementation](https://github.com/deepseek-ai/DeepSeek-OCR/blob/master/DeepSeek-OCR-vllm/run_dpsk_ocr_pdf.py):
+
+- ✅ Multi-page PDF processing
+- ✅ Automatic page-to-image conversion (PyMuPDF)
+- ✅ Configurable DPI (default: 144, same as official)
+- ✅ Page range selection
+- ✅ Same API as image processing
+
+```python
+# Process entire PDF
+result = tool.run("contract.pdf")
+
+# Process specific pages (0-indexed)
+result = tool.run("doc.pdf", pdf_start_page=0, pdf_end_page=2)
+
+# Adjust quality
+result = tool.run("scan.pdf", pdf_dpi=200)  # Higher DPI = better quality
+```
 
 ### Output Format
 
@@ -157,7 +350,8 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
         "inference_mode": "tiny",
         "device": "cuda",
         "inference_time_ms": 1823
-    }
+    },
+    "pages": 1  # Number of pages processed (1 for images, N for PDFs)
 }
 ```
 
@@ -187,13 +381,14 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
 - [Dify Integration](examples/dify_integration.md)
 - [LangChain Example](examples/langchain_example.py)
 - [LlamaIndex Example](examples/llamaindex_example.py)
+- [PDF Processing Example](examples/pdf_example.py)
 
 ## 🛣️ Roadmap
 
 - [x] Core OCR engine with auto-fallback
 - [x] Invoice parser
 - [x] Contract parser (basic)
-- [ ] PDF support (via pdf2image)
+- [x] PDF support (via PyMuPDF, official DeepSeek-OCR method)
 - [ ] Resume parser
 - [ ] Multi-language support
 - [ ] Hosted API (Cloud version)
