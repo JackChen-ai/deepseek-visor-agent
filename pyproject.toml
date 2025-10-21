@@ -5,12 +5,12 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "deepseek-visor-agent"
 version = "0.1.0"
-description = "Standard vision tool for AI agents - Convert documents to structured data"
+description = "Production-ready wrapper for DeepSeek-OCR - Convert documents to structured data for AI agents"
 authors = [{name = "Jack Chen", email = "jack_ai@qq.com"}]
 readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
-keywords = ["ocr", "ai-agent", "deepseek", "langchain", "document-understanding"]
+keywords = ["deepseek", "deepseek-ocr", "ocr", "ai-agent", "langchain", "llamaindex", "document-understanding", "vision-model", "document-ocr"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
