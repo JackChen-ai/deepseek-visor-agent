@@ -2,9 +2,10 @@
 
 > **Production-ready wrapper for [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR)** - Convert documents to structured data in 3 lines of code
 
-[![PyPI version](https://badge.fury.io/py/deepseek-visor-agent.svg)](https://badge.fury.io/py/deepseek-visor-agent)
+[![PyPI version](https://img.shields.io/pypi/v/deepseek-visor-agent.svg)](https://pypi.org/project/deepseek-visor-agent/)
+[![Python versions](https://img.shields.io/pypi/pyversions/deepseek-visor-agent.svg)](https://pypi.org/project/deepseek-visor-agent/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Downloads](https://img.shields.io/pypi/dm/deepseek-visor-agent.svg)](https://pypi.org/project/deepseek-visor-agent/)
 
 **Keywords**: DeepSeek OCR, DeepSeek-OCR wrapper, document OCR, AI agent vision tool, LangChain OCR, LlamaIndex OCR
 
