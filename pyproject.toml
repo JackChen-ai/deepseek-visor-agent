@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "deepseek-visor-agent"
-version = "0.0.1"
+version = "0.1.0"
 description = "Standard vision tool for AI agents - Convert documents to structured data"
 authors = [{name = "Jack Chen", email = "jack_ai@qq.com"}]
 readme = "README.md"
