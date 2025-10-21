@@ -3,7 +3,7 @@
 > **Standard vision tool for AI agents** - Convert documents to structured data in 3 lines of code
 
 [![PyPI version](https://badge.fury.io/py/deepseek-visor-agent.svg)](https://badge.fury.io/py/deepseek-visor-agent)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 ---
@@ -224,7 +224,7 @@ Built on top of [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR):
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+Apache License 2.0 - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
