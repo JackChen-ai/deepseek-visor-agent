@@ -1,10 +1,12 @@
 # DeepSeek Visor Agent
 
-> **Standard vision tool for AI agents** - Convert documents to structured data in 3 lines of code
+> **Production-ready wrapper for [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR)** - Convert documents to structured data in 3 lines of code
 
 [![PyPI version](https://badge.fury.io/py/deepseek-visor-agent.svg)](https://badge.fury.io/py/deepseek-visor-agent)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+
+**Keywords**: DeepSeek OCR, DeepSeek-OCR wrapper, document OCR, AI agent vision tool, LangChain OCR, LlamaIndex OCR
 
 ---
 
@@ -29,9 +31,9 @@
 
 ## 🎯 What is This?
 
-DeepSeek Visor Agent is a production-ready wrapper for [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR) that makes document understanding **effortless for AI agents**.
+DeepSeek Visor Agent is a **production-ready Python wrapper** for [DeepSeek-OCR](https://huggingface.co/deepseek-ai/DeepSeek-OCR), the state-of-the-art open-source OCR model by DeepSeek AI.
 
-Instead of wrestling with GPU configurations, model variants, and raw markdown output, you get:
+**Built on DeepSeek-OCR**, this wrapper makes document understanding **effortless for AI agents** by handling all the complexity:
 
 - ✅ **Auto device detection** (CUDA with Turing+ GPUs)
 - ✅ **Automatic fallback** (Gundam mode → Base mode → Tiny mode when OOM)

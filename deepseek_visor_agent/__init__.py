@@ -8,7 +8,7 @@ A production-ready wrapper for DeepSeek-OCR that provides:
 - LangChain/LlamaIndex compatible interface
 """
 
-__version__ = "0.0.1"
+__version__ = "0.1.0"
 __author__ = "Jack Chen"
 __license__ = "Apache-2.0"
 
