@@ -109,7 +109,7 @@ llama_tool = FunctionTool.from_defaults(fn=ocr_document)
 
 ### Dify / Flowise
 
-See [integration guide](docs/dify_integration.md) for REST API setup.
+See [integration guide](examples/dify_integration.md) for REST API setup.
 
 ## 📊 Features
 
@@ -119,10 +119,10 @@ The tool automatically detects your hardware and selects the optimal configurati
 
 | Hardware | Inference Mode | Memory Usage |
 |----------|----------------|--------------|
-| RTX 4090 (48GB) | Gundam | ~40GB |
-| RTX 3090 (24GB) | Base | ~20GB |
-| M2 Mac | Tiny | ~4GB |
-| CPU only | Tiny | ~4GB RAM |
+| RTX 4090 (24GB) | Gundam | ~10GB |
+| RTX 3090 (24GB) | Base | ~6GB |
+| RTX 2060 (6GB) | Tiny | ~3GB |
+| CPU only | Not Supported | - |
 
 ### Automatic Fallback
 
@@ -178,9 +178,10 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
 ### 🚀 Getting Started
 - **[📚 Documentation Center](docs/README.md)** - Complete documentation hub
 - [GPU Compatibility Guide](docs/GPU_COMPATIBILITY.md)
-- [Hardware Limitations](docs/architecture/HARDWARE_LIMITATIONS.md)
+- [Hardware Limitations](docs/HARDWARE_LIMITATIONS.md)
 
 ### 🏗️ For Developers
+- [Hardware Limitations](docs/HARDWARE_LIMITATIONS.md)
 - [Dify Integration](examples/dify_integration.md)
 - [LangChain Example](examples/langchain_example.py)
 - [LlamaIndex Example](examples/llamaindex_example.py)
@@ -206,7 +207,7 @@ We welcome contributions! Areas where help is needed:
 3. **Documentation** - Improve guides and examples
 4. **Performance** - Optimization suggestions
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Please submit issues or pull requests on [GitHub](https://github.com/JackChen-ai/deepseek-visor-agent).
 
 ## 📖 Citation
 

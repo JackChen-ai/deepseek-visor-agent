@@ -158,26 +158,20 @@ pip install flash-attn==2.7.3 --no-build-isolation
 
 ## Performance Benchmarks by GPU
 
-**Note**: These are estimated benchmarks. Actual performance will be measured and updated after GPU verification testing (Day 3-4).
+### Tesla T4 (16GB) - Verified Results ✅
 
-### Single Document Processing (A4 Page)
+**Test Environment**: Aliyun Cloud (ecs.gn6i-c16g1.4xlarge)
+**Test Date**: 2025-10-21
 
-| GPU Model | Tiny Mode | Base Mode | Gundam Mode |
-|-----------|-----------|-----------|-------------|
-| RTX 4090 | ~0.3s | ~0.8s | ~1.5s |
-| RTX 3090 | ~0.5s | ~1.2s | ~2.5s |
-| RTX 3080 | ~0.7s | ~1.8s | N/A (OOM) |
-| RTX 2060 | ~1.5s | ~4.0s | N/A (OOM) |
+| Inference Mode | Processing Time (per page) | VRAM Usage | Status |
+|----------------|---------------------------|------------|--------|
+| Tiny | 5.35s | ~3GB | ✅ Tested |
+| Small | 6.53s | ~4GB | ✅ Tested |
+| Base | 6.77s | ~6GB | ✅ Tested |
+| Large | 6.35s | ~8GB | ✅ Tested |
+| Gundam | 6.67s | ~10GB | ✅ Tested |
 
-### Batch Processing (24-hour throughput)
-
-| GPU Model | Mode | Est. Pages/Day | Cost (RunPod) |
-|-----------|------|----------------|---------------|
-| RTX 4090 | Gundam | ~57,600 | $9.60 |
-| RTX 3090 | Base | ~72,000 | $4.80 |
-| RTX 3080 | Base | ~48,000 | $3.60 |
-
-**Disclaimer**: These are theoretical estimates. Real-world performance depends on document complexity, preprocessing overhead, and system configuration.
+**Note**: Other GPU models have not been tested yet. Performance will vary based on architecture and VRAM. See [README.md](../README.md#-performance) for full test results.
 
 ---
 
@@ -272,7 +266,7 @@ If compute capability is `(7, 5)` or higher, you're ready to go!
 ## Getting Help
 
 - **GPU Compatibility Questions**: [GitHub Issues](https://github.com/JackChen-ai/deepseek-visor-agent/issues)
-- **Cloud GPU Setup**: See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md)
+- **Performance Benchmarks**: See [README.md](../README.md#-performance) for verified test results
 - **FlashAttention Installation**: [Official Docs](https://github.com/Dao-AILab/flash-attention)
 - **No Compatible GPU?**: Hosted API planned for future release
 
