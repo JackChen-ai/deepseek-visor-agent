@@ -21,7 +21,7 @@
 
 **Why?** DeepSeek-OCR requires [FlashAttention 2.x](https://github.com/Dao-AILab/flash-attention), which only supports compute capability 7.5+ (Turing and newer).
 
-**No GPU?** Check our [hosted API](https://deepseek-visor-agent.com) (coming soon).
+**No GPU?** Join our hosted API waitlist (planned for future release).
 
 📖 **Detailed compatibility guide**: [GPU_COMPATIBILITY.md](docs/GPU_COMPATIBILITY.md)
 
@@ -177,20 +177,13 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
 
 ### 🚀 Getting Started
 - **[📚 Documentation Center](docs/README.md)** - Complete documentation hub
-- [Installation Guide](docs/installation.md)
-- [Quick Start](docs/quickstart.md)
-- [Troubleshooting](docs/troubleshooting.md)
-
-### 💼 For Decision Makers
-- [Product Requirements (PRD)](docs/business/PRD.md) - Product positioning and goals
-- [Strategic Analysis](docs/business/STRATEGIC_ANALYSIS.md) - Why we built this
-- [Competitive Comparison](docs/business/COMPETITIVE_COMPARISON.md) - vs. Google Vision, AWS Textract
+- [GPU Compatibility Guide](docs/GPU_COMPATIBILITY.md)
+- [Hardware Limitations](docs/architecture/HARDWARE_LIMITATIONS.md)
 
 ### 🏗️ For Developers
-- [System Architecture](docs/architecture/ARCHITECTURE.md) - Technical design
-- [Hardware Limitations](docs/architecture/HARDWARE_LIMITATIONS.md) - GPU requirements explained
-- [API Reference](docs/api_reference.md) - Coming soon
 - [Dify Integration](examples/dify_integration.md)
+- [LangChain Example](examples/langchain_example.py)
+- [LlamaIndex Example](examples/llamaindex_example.py)
 
 ## 🛣️ Roadmap
 
@@ -240,9 +233,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 📬 Contact
 
-- GitHub Issues: [Report bugs or request features](https://github.com/visor-agent/deepseek-visor-agent/issues)
-- Email: hello@visor-agent.com
-- Twitter: [@visor_agent](https://twitter.com/visor_agent)
+- GitHub Issues: [Report bugs or request features](https://github.com/JackChen-ai/deepseek-visor-agent/issues)
+- Email: jack_ai@qq.com
 
 ---
 

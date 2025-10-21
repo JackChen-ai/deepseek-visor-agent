@@ -103,7 +103,7 @@ RuntimeError: FlashAttention only supports Turing, Ampere, Ada, or Hopper GPUs
 
 **Why Not Supported**: DeepSeek-OCR model code contains hardcoded CUDA operations.
 
-**Workaround**: Use our [hosted API](https://deepseek-visor-agent.com) (coming soon).
+**Workaround**: Hosted API planned for future release (no GPU required).
 
 ### ❌ AMD GPUs (ROCm)
 
@@ -271,10 +271,10 @@ If compute capability is `(7, 5)` or higher, you're ready to go!
 
 ## Getting Help
 
-- **GPU Compatibility Questions**: [GitHub Issues](https://github.com/visor-agent/deepseek-visor-agent/issues)
-- **Cloud GPU Setup**: See [Installation Guide](installation.md)
+- **GPU Compatibility Questions**: [GitHub Issues](https://github.com/JackChen-ai/deepseek-visor-agent/issues)
+- **Cloud GPU Setup**: See [GPU_COMPATIBILITY.md](GPU_COMPATIBILITY.md)
 - **FlashAttention Installation**: [Official Docs](https://github.com/Dao-AILab/flash-attention)
-- **No Compatible GPU?**: Join our [hosted API waitlist](https://deepseek-visor-agent.com)
+- **No Compatible GPU?**: Hosted API planned for future release
 
 ---
 

@@ -210,5 +210,5 @@ CMD ["uvicorn", "api_server:app", "--host", "0.0.0.0", "--port", "8000"]
 ## Support
 
 For more help:
-- GitHub Issues: https://github.com/visor-agent/deepseek-visor-agent/issues
-- Email: hello@visor-agent.com
+- GitHub Issues: https://github.com/JackChen-ai/deepseek-visor-agent/issues
+- Email: jack_ai@qq.com

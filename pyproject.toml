@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "deepseek-visor-agent"
 version = "0.0.1"
 description = "Standard vision tool for AI agents - Convert documents to structured data"
-authors = [{name = "Visor Agent Team", email = "hello@visor-agent.com"}]
+authors = [{name = "Jack Chen", email = "jack_ai@qq.com"}]
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
@@ -50,10 +50,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/visor-agent/deepseek-visor-agent"
-Documentation = "https://github.com/visor-agent/deepseek-visor-agent/blob/main/README.md"
-Repository = "https://github.com/visor-agent/deepseek-visor-agent"
-Issues = "https://github.com/visor-agent/deepseek-visor-agent/issues"
+Homepage = "https://github.com/JackChen-ai/deepseek-visor-agent"
+Documentation = "https://github.com/JackChen-ai/deepseek-visor-agent/blob/main/README.md"
+Repository = "https://github.com/JackChen-ai/deepseek-visor-agent"
+Issues = "https://github.com/JackChen-ai/deepseek-visor-agent/issues"
 
 [tool.setuptools]
 packages = ["deepseek_visor_agent"]
