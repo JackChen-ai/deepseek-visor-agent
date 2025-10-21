@@ -9,8 +9,8 @@ A production-ready wrapper for DeepSeek-OCR that provides:
 """
 
 __version__ = "0.0.1"
-__author__ = "Visor Agent Team"
-__license__ = "MIT"
+__author__ = "Jack Chen"
+__license__ = "Apache-2.0"
 
 from .tool import VisionDocumentTool
 from .device_manager import DeviceManager
