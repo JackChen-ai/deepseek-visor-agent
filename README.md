@@ -161,14 +161,17 @@ Gundam mode (OOM) → Large mode → Base mode → Small mode → Tiny mode (Suc
 
 ## ⚡ Performance
 
-Benchmarked on A4 scanned documents:
+✅ **GPU-Tested on Tesla T4 (16GB VRAM)** - 2025-10-21
 
-| Inference Mode | Device | Inference Time | Accuracy |
-|----------------|--------|----------------|----------|
-| Gundam | RTX 4090 | ~6s | 98% |
-| Base | RTX 3090 | ~12s | 96% |
-| Tiny | M2 Mac | ~2s | 92% |
-| Tiny | CPU | ~15s | 92% |
+| Inference Mode | Inference Time | Test Environment | Notes |
+|----------------|----------------|------------------|-------|
+| **Tiny** | 5.35s/page | Tesla T4, Simple Doc | Fastest, 64 tokens |
+| **Small** | 6.53s/page | Tesla T4, Simple Doc | 100 tokens |
+| **Base** | 6.77s/page | Tesla T4, Simple Doc | 256 tokens, **Most Common** |
+| **Large** | 6.35s/page | Tesla T4, Simple Doc | 400 tokens |
+| **Gundam** | 6.67s/page | Tesla T4, Simple Doc | Crop mode, 256+400 tokens |
+
+⚠️ **Note**: Performance tested on simple text documents. Real-world complex documents (tables, images, forms) may vary.
 
 ## 📚 Documentation
 

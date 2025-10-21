@@ -76,7 +76,7 @@ result = tool.run(
 | **依赖** | - transformers==4.46.3 (固定版本)<br>- torch>=2.6.0 + CUDA<br>- 避免引入 heavy 依赖 |
 | **许可证** | MIT（鼓励集成、fork、商用） |
 | **文档** | README 包含：<br>- **硬件要求警告**（置顶）<br>- 安装命令<br>- 3 个典型用例（发票、合同、表格）<br>- LangChain 集成示例<br>- 托管 API 方案（无 GPU 用户） |
-| **性能指标** | ⚠️ **以下数据来自论文，需 GPU 环境实测验证**<br><br>**HuggingFace Transformers 版本（MCP v0.1.0 实现）**：<br>- Base 模式: 估算 0.5-2s/页（取决于文档复杂度）<br>- Gundam 模式: 估算 1-3s/页<br>- 单卡日处理量: 20k-80k 页（保守估计）<br>- ⚠️ **实际性能需 GPU 实测后更新**<br><br>**vLLM 优化版本（论文数据，v1.1+ 规划）**：<br>- Base 模式: ~0.1s/页（论文数据）<br>- Gundam 模式: ~0.26s/页（论文数据）<br>- 单卡吞吐: 200k+ 页/天（A100-40G，论文数据）<br>- vLLM 状态: ✅ 代码已开源，需手动注册模型<br>- 集群能力: 160 GPUs → 33M 页/天（论文数据）<br><br>📊 **性能验证计划**：<br>- Day 3-4: GPU 环境实测 5 种模式<br>- 更新为实测数据后移除此警告 |
+| **性能指标** | ✅ **GPU 实测数据（阿里云 Tesla T4, 2025-10-21）**<br><br>**HuggingFace Transformers 版本（MCP v0.1.0 实现）**：<br>- Tiny 模式: 5.35s/页 ✅ 实测<br>- Small 模式: 6.53s/页 ✅ 实测<br>- Base 模式: 6.77s/页 ✅ 实测（最常用）<br>- Large 模式: 6.35s/页 ✅ 实测<br>- Gundam 模式: 6.67s/页 ✅ 实测（crop分块）<br>- 测试环境: Tesla T4 (16GB VRAM), 简单文档<br>- ⚠️ **实际复杂文档性能可能不同**<br><br>**vLLM 优化版本（论文数据，v1.1+ 规划）**：<br>- Base 模式: ~0.1s/页（论文数据）<br>- Gundam 模式: ~0.26s/页（论文数据）<br>- 单卡吞吐: 200k+ 页/天（A100-40G，论文数据）<br>- vLLM 状态: ✅ 代码已开源，需手动注册模型<br>- 集群能力: 160 GPUs → 33M 页/天（论文数据） |
 
 ---
 
